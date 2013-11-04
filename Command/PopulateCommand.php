@@ -24,7 +24,8 @@ class PopulateCommand extends ContainerAwareCommand
     {
         $this->setName('berriart:sitemap:populate')
             ->setDescription('Populate url database, using url providers.')
-            ->addOption('purge-existing', null, InputOption::VALUE_NONE, 'Purge existing sitemap entries');
+            ->addOption('purge-existing', null, InputOption::VALUE_NONE, 'Purge existing sitemap entries')
+            ->addOption('dump', null, InputOption::VALUE_NONE, 'Purge existing sitemap entries');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
@@ -47,5 +48,18 @@ class PopulateCommand extends ContainerAwareCommand
         $this->getContainer()->get('berriart_sitemap.provider.chain')->populate($sitemap);
 
         $output->write('<info>Sitemap was sucessfully populated!</info>', true);
+
+        if ($input->getOption('dump')) {
+            $rendered_sitemap = $this->getContainer()->get('twig')->render('BerriartSitemapBundle:Sitemap:sitemap.xml.twig', array(
+                    'sitemap' => $sitemap
+                ));
+
+            file_put_contents(
+                $this->getContainer()->get('kernel')->getRootDir() . '/../web/sitemap.xml',
+                $rendered_sitemap
+            );
+
+            $output->write('<info>Sitemap dumped to file!</info>', true);
+        }
     }
 }
